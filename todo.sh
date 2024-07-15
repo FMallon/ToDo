@@ -25,13 +25,14 @@ editFile(){
 
   nano "$FILE"
 
+  backupFile
 }
 
 backupFile(){ 
   
   cp "$FILE" "$FILE_BACKUP"
 
-  echo "ToDo file is backed-up!"
+  #echo "ToDo file is backed-up!"
 
 }
 

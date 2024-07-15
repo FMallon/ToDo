@@ -43,16 +43,46 @@ appendFile(){
   #create a temp file
   local tempfile=$(mktemp)
 
-  #Cancel on ctrl+c
-  #IMPORTANT! 'return 1' seems to make it work from zShell without exiting back to Bash - was 'exit 0' before
+  # Cancel on ctrl+c
+  # IMPORTANT! 'return 1' seems to make it work from zShell without exiting back to Bash - was 'exit 0' before
   trap 'echo -e "\nAppending cancelled"; rm -f $tempfile; return 1' INT
 
+  # older version
   #this '-' within cat should allow new line after 'enter' has been hit to be appended also;
-  echo -e "\n" && cat - > "$tempfile"
+  #echo -e "\n" && cat - > "$tempfile"
+  
+
+  # Improved appending 
+  
+  while true; do
+    
+    if [ -n "$BASH_VERSION" ]; then
+
+      read -e -p "> " input
+      status=$? 
+
+    elif [ -n "$ZSH_VERSION" ]; then
+
+      echo -n "> "
+      read input
+      #this causes issues in zShell  status=$?
+  
+    fi
+
+  # Ctrl + D to break
+
+    if [ $status -ne 0 ]; then
+      break
+    fi  
+
+    echo -e "\n$input" >> $tempfile
+
+  done
+
 
   if [[ -s $tempfile ]]; then
 
-    echo -e "\n" >> $tempfile &&
+    echo -e >> $tempfile &&
 
     cat $tempfile >> "$FILE"
     
@@ -165,14 +195,22 @@ userHelp(){
 }
 
 
+appendFile_Full(){
+
+
+  echo -e "\nTo Cancel, press [Ctrl+c]! To finish appending: press [Enter], then [Ctrl+d]" &&
+  appendFile &&
+  appendComplete &&
+  backupFile
+
+
+}
+
 
 main(){
   
   case "$1" in
-    -a) echo -e "\nTo Cancel, press ctrl+c! To finish appending, press enter, then ctrl+d\n" && 
-      appendFile && 
-      appendComplete &&
-      backupFile
+    -a) appendFile_Full
     ;;
     -e) shift; editFile
     ;;
